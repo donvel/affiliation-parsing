@@ -1,0 +1,13 @@
+repeated: xx - present at least twice in xx affiliation entries
+# of entries : 11614
+addr-line : 16427, repeated:  4610
+institution : 12269, repeated:  623
+country : 11650, repeated:  22
+label : 8271, repeated:  0
+bold : 1182, repeated:  0
+sup : 915, repeated:  0
+break : 50, repeated:  12
+email : 30, repeated:  0
+phone : 7, repeated:  0
+fax : 6, repeated:  0
+italic : 5, repeated:  0
