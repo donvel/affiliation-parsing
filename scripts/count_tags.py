@@ -1,5 +1,4 @@
 import xml.etree.ElementTree as ET
-import csv
 from collections import defaultdict
 from operator import itemgetter
 

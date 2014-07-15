@@ -1,8 +1,5 @@
-import csv
-import sys
 import xml.etree.ElementTree as ET
-from collections import defaultdict
-from operator import itemgetter
+import sys
 
 keep_tags = ['addr-line', 'institution', 'country']
 label_tags = ['label', 'bold', 'sup']
