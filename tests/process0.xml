@@ -1,0 +1,23 @@
+<affs>
+    <aff>
+        <bold>1</bold>
+        <institution>Szkoła <italic>Potworów</italic></institution>
+        Contact:<break /><email>E-mail:</email> <email>me@me.com</email>
+        some text 2<sup>nd</sup> text. This is <bold>important!</bold>
+    </aff>
+    <aff>
+        <bold>długi tekst</bold>
+        <institution>Szkoła<break /><country>Potworów</country></institution>
+        <country>Potworowo</country>
+    </aff>
+    <aff>
+        <label>99</label>
+    </aff>
+    <aff>
+        <sup>12</sup>
+        <institution>Washington</institution> <break /><institution>Hospital</institution>
+        <addr-line>
+            ul. Powstańców 3<sup>cie</sup> mieszkanie <bold>Katowice</bold>
+        </addr-line>
+    </aff>
+</affs>

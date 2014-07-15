@@ -1,0 +1,23 @@
+<affs>
+    <aff>
+        
+        <institution>Szkoła Potworów</institution>
+        Contact: E-mail: me@me.com
+        some text 2nd text. This is important!
+    </aff>
+    <aff>
+        długi tekst
+        <institution>Szkoła Potworów</institution>
+        <country>Potworowo</country>
+    </aff>
+    <aff>
+        
+    </aff>
+    <aff>
+        
+        <institution>Washington</institution>  <institution>Hospital</institution>
+        <addr-line>
+            ul. Powstańców 3cie mieszkanie Katowice
+        </addr-line>
+    </aff>
+</affs>

@@ -1,5 +1,6 @@
-import xml.etree.ElementTree as ET
 import csv
+import sys
+import xml.etree.ElementTree as ET
 from collections import defaultdict
 from operator import itemgetter
 
@@ -13,6 +14,9 @@ def addstr(str1, str2):
 def getstr(item):
     text = replace_tags.get(item.tag, None) or item.text
     return addstr(text, item.tail)
+
+def is_label(item):
+    return item.tag in label_tags and len(item.text) <= 2
 
 def process(root):
     for aff in list(root):
@@ -30,7 +34,7 @@ def process(root):
             
             if item.tag not in keep_tags:
                 my_text = None
-                if (last_item is None and item.tag in label_tags):
+                if (last_item is None and is_label(item)):
                     # We don't need the text content
                     my_text = item.tail
                 else:
@@ -48,9 +52,18 @@ def process(root):
     pass
 
 if __name__ == '__main__':
-    tree = ET.parse('../resources/affiliations.xml')
+    input_file = '../resources/affiliations.xml'
+    output_file = '../resources/affiliations_stripped.xml'
+
+    args = sys.argv[1:]
+    print str(args)
+    if len(args) == 2:
+        input_file = args[0]
+        output_file = args[1]
+    
+    tree = ET.parse(input_file)
     root = tree.getroot()
     process(root)
-    tree.write('../resources/affiliations_stripped.xml')
+    tree.write(output_file, encoding="utf-8")
 
 
