@@ -47,7 +47,7 @@ def process(root):
 
                 aff.remove(item)
 
-            else: # Rozwijamy potomkow
+            else:
                 last_item = item
     pass
 
