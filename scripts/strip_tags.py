@@ -28,7 +28,7 @@ def process(root):
                 for item3 in list(item2):
                     raise Exception("To deep (lvl 3)")
                 item.remove(item2)
-            
+
             if item.tag not in keep_tags:
                 my_text = None
                 if (last_item is None and is_label(item)):
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     if len(args) == 2:
         input_file = args[0]
         output_file = args[1]
-    
+
     tree = ET.parse(input_file)
     root = tree.getroot()
     process(root)
