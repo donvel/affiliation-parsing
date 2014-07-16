@@ -2,8 +2,8 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 from operator import itemgetter
 
-important_tags = ['addr-line', 'institution', 'country']
-#important_tags = ['country']
+#important_tags = ['addr-line', 'institution', 'country']
+important_tags = ['country']
 
 def get_list(ddict):
     return sorted(ddict.items(), key=itemgetter(1), reverse=True)
