@@ -3,6 +3,55 @@ import sys
 import re
 import itertools
 import unicodedata
+import random
+
+
+features_on = [
+        'Word',
+        'Capital',
+        'AllCapital',
+        'Number',
+        'Punct',
+    ]
+
+
+def glue_lists(lol):
+    return list(itertools.chain(*lol))
+
+
+def allcapital(word):
+    return all(c.isupper() for c in word)
+
+
+def firstcapital(word):
+    return word[0].isupper() and not any(c.isupper() for c in word[1:])
+
+
+def get_tokens(word):
+    res = []
+    
+    lword = word.lower()
+    assert len(lword) >= 1
+    
+    if 'Word' in features_on:
+        res += [lword]
+
+    if lword.isalpha():
+        if firstcapital(word) and 'Capital' in features_on:
+            res += ['Capital']
+        elif allcapital(word) and 'AllCapital' in features_on:
+            res += ['AllCapital']
+
+    elif lword.isdigit():
+        if 'Number' in features_on:
+            res = ['Number']
+
+    else:
+        assert len(lword) == 1
+        if 'Punct' in features_on:
+            res += ['Punct']
+
+    return res
 
 
 def convert_string(text):
@@ -11,54 +60,65 @@ def convert_string(text):
     return unicodedata.normalize('NFKD', text).encode('ascii','ignore')
 
 
+def split_more(format_str, split_list):
+    pres = [re.split(format_str, string) for string in split_list]
+    return glue_lists(pres)
+
+
 def split_text(text):
-    #return re.split('\s+', text)
     text = convert_string(text)
-    split_list = [re.split('(\W+)', string) for string in re.split('\s+', text)]
-    full_list = list(itertools.chain(*split_list))
-    filtered_list = filter(lambda x: x != '', full_list)
-    return filtered_list
+    split_list = re.split('\s+', text)
+    split_list = split_more('(\W)', split_list)
+    split_list = split_more('(\d+)', split_list)
+    filtered_list = filter(lambda x: x != '', split_list)
+    return [get_tokens(word) for word in filtered_list]
 
 
-def write_tokens(text, label):
+def write_tokens(text, label, f):
     if not text:
         return
-    words = split_text(text)
-    for word in words:
-        print '%s --- %s' % (label, word)
+    lines = split_text(text)
+    for line in lines:
+        print >> f, '%s ---- %s' % (label, ' '.join(line))
 
 
-def write_aff(aff):
-    write_tokens(aff.text, 'NONE')
+def write_aff(aff, f):
+    write_tokens(aff.text, 'NONE', f)
     for item in aff:
-        write_tokens(item.text, item.tag.upper())
-        write_tokens(aff.text, 'NONE')
+        write_tokens(item.text, item.tag.upper()[:4], f)
+        write_tokens(aff.text, 'NONE', f)
 
 
-def export_to_crf_input(root, num_l, num_r):
-    cnum = 0
-    for aff in root:
-        if cnum >= num_l and cnum <= num_r:
-            write_aff(aff)
-            print
-        cnum += 1
+def export_to_crf_input(root, num, file1, file2):
+    affs = list(root)
+    random.shuffle(affs)
+    aff_list = [(affs[0:num], file1), (affs[num:2*num], file2)]
+
+    for (li, f) in aff_list:
+        for aff in li:
+            write_aff(aff, f)
+            print >> f
 
 
 if __name__ == '__main__':
-    input_file = '../resources/affiliations_stripped.xml'
-    #training_file = '../resources/crf_train.txt'
-    #test_file = '../resources/crf_test.txt'
-    num_l = 0
-    num_r = 19
+    random.seed(1500)
+    num = 50
+    training_file = 'crf/data/fancy_train.txt'
+    test_file = 'crf/data/fancy_test.txt'
+    input_file = 'resources/affiliations_stripped.xml'
 
     args = sys.argv[1:]
 
-    if len(args) >= 2:
-        num_l = int(args[0])
-        num_r = int(args[1])
-    if len(args) == 3:
-        input_file = args[2]
+    if len(args) >= 1:
+        num = int(args[0])
+        if len(args) == 4:
+            training_file = args[1]
+            test_file = args[2]
+            input_file = args[3]
+
+    file1 = open(training_file, 'wb')
+    file2 = open(test_file, 'wb')
 
     tree = ET.parse(input_file)
     root = tree.getroot()
-    export_to_crf_input(root, num_l, num_r)
+    export_to_crf_input(root, num, file1, file2)
