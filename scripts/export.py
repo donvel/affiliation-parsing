@@ -4,6 +4,7 @@ import re
 import itertools
 import unicodedata
 import random
+import ast
 
 
 features_on = [
@@ -12,7 +13,24 @@ features_on = [
         'AllCapital',
         'Number',
         'Punct',
+        'StopWord',
     ]
+
+stop_words = None
+
+
+DICTS_DIR = '/home/bartek/Projects/affiliation-parsing/dicts/'
+
+
+def set_from_file(filename):
+    with open(DICTS_DIR + filename, 'rb') as f:
+        return set([line.rstrip() for line in f])
+
+
+def load_dicts():
+    if 'StopWord' in features_on:
+        global stop_words
+        stop_words = set_from_file('stop_words2.txt')
 
 
 def glue_lists(lol):
@@ -32,9 +50,13 @@ def get_tokens(word):
     
     lword = word.lower()
     assert len(lword) >= 1
-    
+
     if 'Word' in features_on:
         res += [lword]
+    
+    if 'StopWord' in features_on:
+        if lword in stop_words:
+            res += ['StopWord']
 
     if lword.isalpha():
         if firstcapital(word) and 'Capital' in features_on:
@@ -86,18 +108,32 @@ def write_aff(aff, f):
     write_tokens(aff.text, 'NONE', f)
     for item in aff:
         write_tokens(item.text, item.tag.upper()[:4], f)
-        write_tokens(aff.text, 'NONE', f)
+        write_tokens(item.tail, 'NONE', f)
 
+
+def all_words(aff):
+    return []
+
+
+def count_rare(li):
+    words = glue_lists([all_words(aff) for aff in li])
+
+
+def write_affs(li, f):
+    if 'Rare' in features_on:
+        count_rare(li)
+    for aff in li:
+        write_aff(aff, f)
+        print >> f
 
 def export_to_crf_input(root, num, file1, file2):
     affs = list(root)
-    random.shuffle(affs)
+    # random.shuffle(affs)
     aff_list = [(affs[0:num], file1), (affs[num:2*num], file2)]
 
+    write_affs(li, f)
     for (li, f) in aff_list:
-        for aff in li:
-            write_aff(aff, f)
-            print >> f
+        write_affs(li, f)
 
 
 if __name__ == '__main__':
@@ -111,14 +147,18 @@ if __name__ == '__main__':
 
     if len(args) >= 1:
         num = int(args[0])
-        if len(args) == 4:
+        if len(args) >= 4:
             training_file = args[1]
             test_file = args[2]
             input_file = args[3]
+            if len(args) >= 5:
+                features_on = ast.literal_eval(args[4])
 
+    print features_on
     file1 = open(training_file, 'wb')
     file2 = open(test_file, 'wb')
 
+    load_dicts()
     tree = ET.parse(input_file)
     root = tree.getroot()
     export_to_crf_input(root, num, file1, file2)

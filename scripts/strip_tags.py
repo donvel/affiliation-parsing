@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import sys
+import random
 
 keep_tags = ['addr-line', 'institution', 'country']
 label_tags = ['label', 'bold', 'sup']
@@ -48,19 +49,34 @@ def process(root):
                 last_item = item
     pass
 
-if __name__ == '__main__':
-    input_file = '../resources/affiliations.xml'
-    output_file = '../resources/affiliations_stripped.xml'
 
+def shuffle_file(filename):
+    lines = open(filename, 'rb').readlines()
+    random.shuffle(lines)
+    open(filename, 'wb').writelines(lines)
+
+
+if __name__ == '__main__':
+    random.seed(1500)
+    shuffle = True
+
+    input_file = 'resources/affiliations.xml'
+    output_file = 'resources/affiliations_stripped.xml'
+    
     args = sys.argv[1:]
     print str(args)
-    if len(args) == 2:
+    if len(args) >= 2:
         input_file = args[0]
         output_file = args[1]
+        if len(args) >= 3:
+            shuffle = False
 
     tree = ET.parse(input_file)
     root = tree.getroot()
     process(root)
-    tree.write(output_file, encoding="utf-8")
+    if shuffle:
+        random.shuffle(root)
+    tree.write(output_file)
+
 
 
