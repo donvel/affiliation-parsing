@@ -6,4 +6,3 @@ java -Xmx2000M \
     --training $1 \
     --testing $2 \
     --model-file $3
-    2>&1 >/dev/null | grep 'Testing\|Training'
