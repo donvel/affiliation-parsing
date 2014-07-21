@@ -4,7 +4,7 @@ import sys
 
 keep_tags = ['addr-line', 'institution', 'country']
 
-end_words = [',', ';', '.', 'and', ':', '`', '\'', '-', ', and', '\',', '; and']
+end_words = [',', ';', '.', ' and', ':', '`', '\'', '-', ', and', '\',', '; and']
 
 
 def print_out(node):
@@ -17,26 +17,26 @@ def short_rep(order):
 
 
 def process(root):
-    global cnt
-    cnt = 0
     for aff in root:
         order = []
         last = None
         for item in aff:
-            tail = item.tail or ''
-            text = item.text or ''
+            item.tail = item.tail or ''
+            item.text = item.text or ''
 
-            if tail.strip() in end_words:
-                item.text = text + ' ' + tail
-                item.tail = None
-                cnt += 1
-            elif tail.strip().startswith(','):
-                item.text = text + ','
-                item.tail = tail.strip()[1:]
-            elif not any(text.strip().endswith(w) for w in end_words):
-                item.text = text + ','
-                if tail.strip():
-                    print tail
+            if item.tail.strip() in [w.strip() for w in end_words]:
+                item.text += ' ' + item.tail
+                item.tail = ''
+            elif item.tail.strip().startswith(','):
+                item.text = item.text + ','
+                item.tail = item.tail.strip()[1:]
+            elif not any(item.text.strip().endswith(w) for w in end_words):
+                item.text = item.text + ','
+                if item.tail.strip():
+                    print item.tail
+
+            item.text += ' '
+            item.tail += ' '
 
             tag = item.tag
             if tag in keep_tags and tag != last:
@@ -70,4 +70,3 @@ if __name__ == '__main__':
     root = tree.getroot()
     process(root)
     tree.write(output_file)
-    print cnt

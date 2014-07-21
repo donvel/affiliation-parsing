@@ -5,7 +5,7 @@ tst=crf/data/aff_fts_test.txt
 affs=resources/final.xml
 model=crf/data/tmpls_chain.txt
 
-python scripts/export.py 100 $train $tst $affs "$1"
+python scripts/export2.py --train $train --test $tst --input $affs --number 100 "$1"
 
 java -Xmx2000M \
     -cp $GRMM/class:$GRMM/lib/mallet-deps.jar:$GRMM/lib/grmm-deps.jar \

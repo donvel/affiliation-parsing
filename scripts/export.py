@@ -6,6 +6,9 @@ import unicodedata
 import random
 import ast
 
+n_dist = 0
+
+n_features = None
 
 features_on = [
         'Word',
@@ -13,7 +16,7 @@ features_on = [
         'AllCapital',
         'Number',
         'Punct',
-        'StopWord',
+        #'StopWord', # This one is poor
     ]
 
 stop_words = None
@@ -30,7 +33,7 @@ def set_from_file(filename):
 def load_dicts():
     if 'StopWord' in features_on:
         global stop_words
-        stop_words = set_from_file('stop_words2.txt')
+        stop_words = set_from_file('stop_words2.txt') # stop_words.txt is too long
 
 
 def glue_lists(lol):
@@ -69,7 +72,7 @@ def get_tokens(word):
             res = ['Number']
 
     else:
-        assert len(lword) == 1
+        assert len(lword) == 1, lword
         if 'Punct' in features_on:
             res += ['Punct']
 
@@ -90,7 +93,7 @@ def split_more(format_str, split_list):
 def split_text(text):
     text = convert_string(text)
     split_list = re.split('\s+', text)
-    split_list = split_more('(\W)', split_list)
+    split_list = split_more('(\W|_)', split_list)
     split_list = split_more('(\d+)', split_list)
     filtered_list = filter(lambda x: x != '', split_list)
     return [get_tokens(word) for word in filtered_list]
