@@ -131,7 +131,6 @@ def export_to_crf_input(root, num, file1, file2):
     # random.shuffle(affs)
     aff_list = [(affs[0:num], file1), (affs[num:2*num], file2)]
 
-    write_affs(li, f)
     for (li, f) in aff_list:
         write_affs(li, f)
 

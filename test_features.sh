@@ -2,7 +2,7 @@ GRMM=/home/bartek/Projects/affiliation-parsing/grmm-0.1.3
 
 train=crf/data/aff_fts_train.txt
 tst=crf/data/aff_fts_test.txt
-affs=resources/affiliations_stripped.xml
+affs=resources/final.xml
 model=crf/data/tmpls_chain.txt
 
 python scripts/export.py 100 $train $tst $affs "$1"
