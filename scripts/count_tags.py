@@ -3,7 +3,7 @@ from collections import defaultdict
 from operator import itemgetter
 
 #important_tags = ['addr-line', 'institution', 'country']
-important_tags = ['country']
+important_tags = []
 
 def get_list(ddict):
     return sorted(ddict.items(), key=itemgetter(1), reverse=True)
@@ -43,7 +43,7 @@ def parse(root):
     return tag_list
 
 if __name__ == '__main__':
-    tree = ET.parse('../resources/affiliations.xml')
+    tree = ET.parse('resources/affiliations.xml')
     root = tree.getroot()
     print "repeated: xx - present at least twice in xx affiliation entries"
     print "# of entries : " + str(len(list(root)))
