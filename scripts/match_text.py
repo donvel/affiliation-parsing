@@ -5,6 +5,7 @@ import re
 import ast
 import codecs
 import argparse
+import unicodedata
 
 from collections import defaultdict
 
@@ -29,8 +30,15 @@ def get_dict(root, text_file):
 
     return str_d, node_d
 
+def convert_string(text):
+    if isinstance(text, str):
+        return text
+    return unicodedata.normalize('NFKD', text).encode('ascii','ignore')
+
 # Tests if s1 is a subsequence of s2
 def is_subseq(s1, s2):
+    s1 = convert_string(s1)
+    s2 = convert_string(s2)
     i = 0
     for l in s1:
         while s2[i] != l:
@@ -41,12 +49,21 @@ def is_subseq(s1, s2):
 
 
 def get_matching(l1, l2):
+    """
+    for x in l1:
+        if not any(is_subseq(x, y) for y in l2):
+            print x
+    """
+    return len(filter(lambda x: any(is_subseq(x, y) for y in l2), l1))
+    """
     mat = [[is_subseq(s1, s2) for s2 in l2] for s1 in l1]
+    print mat
     success = all(len(filter(lambda x: x, v)) == 1 for v in mat)
     if not success:
         return [], False
     matching = [(s1, filter(lambda x: is_subseq(s1, x), l2)[0]) for s1 in l1]
     return matching, True
+    """
 
 
 def match_text(root, text_file, doc_num):
@@ -63,9 +80,13 @@ def match_text(root, text_file, doc_num):
        print matching, success
     else:
        for (number, l1) in node_dict.items():
+           """
            matching, success = get_matching(l1, str_dict[number])
            if success:
                good += len(l1)
+           """
+           good += get_matching(l1, str_dict[number])
+           #"""
            total += len(l1)
        print good / float(total), good, total 
 

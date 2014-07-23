@@ -16,11 +16,14 @@ AVAILABLE_FEATURES = [
         'AllCapital',
         'Number',
         'Punct',
+        'Freq', # --> stupid ??
         'Rare',
+        'Length',
 
         # dict - based
         'StopWord',
         'Country',
+        'Address',
     ]
 
 features_on = []
@@ -45,8 +48,9 @@ def dict_from_file(filename):
 
 def load_dicts(dd):
     what_where = [
-            ('StopWord', 'stop_words2.txt'),
+            ('StopWord', 'stop_words.txt'),
             ('Country', 'countries.txt'),
+            ('Address', 'address_keywords.txt'),
         ]
 
     for (what, where) in what_where:
@@ -62,7 +66,7 @@ def firstcapital(word): # Mr and M but not MR, makes sense ???
     return word[0].isupper() and not any(c.isupper() for c in word[1:])
 
 
-def get_local_features(token, rare_words=None):
+def get_local_features(token, word_freq=None):
 
     assert len(token) >= 1
 
@@ -80,8 +84,11 @@ def get_local_features(token, rare_words=None):
             if allcapital(token):
                 features += ['AllCapital']
 
+        if 'Freq' in features_on:
+            features += ['Freq:%s' % str(word_freq[ntoken])]
+        
         if 'Rare' in features_on:
-            if ntoken in rare_words:
+            if word_freq[ntoken] <= rare_thr:
                 features += ['Rare']
 
     elif token.isdigit():
@@ -97,7 +104,10 @@ def get_local_features(token, rare_words=None):
     
     if 'Word' in features_on:
         if not any(x in features for x in ['Rare', 'Number']):
-            features += [ntoken]
+            features += ['W=%s' % token.encode('utf8')]
+
+    if 'Length' in features_on:
+        features += ['Length:%s' % str(len(token))]
 
     return features
 
@@ -122,15 +132,14 @@ def get_dict_features(token_list):
     return features
 
 
-def find_rare_words(li):
+def find_word_freq(li):
     all_tokens = [norm(t)
              for aff in li
              for t in split_into_tokens(''.join(txt for txt in aff.itertext()))]
     freq = defaultdict(int)
     for token in all_tokens:
         freq[token] += 1
-    rare = set(t for (t, f) in freq.items() if f <= rare_thr)
-    return rare
+    return freq
 
 
 def get_nei_features(features):
@@ -156,8 +165,8 @@ def get_nei_features(features):
     return nei_features
 
 
-def get_timesteps(token_list, rare_words=None):
-    local_features = [get_local_features(t, rare_words=rare_words) for t in token_list]
+def get_timesteps(token_list, word_freq=None):
+    local_features = [get_local_features(t, word_freq=word_freq) for t in token_list]
     dict_features = get_dict_features(token_list)
 
     features = [glue_lists(fts) for fts in zip(local_features, dict_features)]
@@ -191,7 +200,7 @@ def get_labels(text, label):
     return [(t, label) for t in split_into_tokens(text)]
 
 
-def create_instance(aff, f, rare_words=None):
+def create_instance(aff, f, word_freq=None, hint_file=None):
     full_text = ''.join(t for t in aff.itertext())
     token_list = split_into_tokens(full_text)
 
@@ -207,38 +216,46 @@ def create_instance(aff, f, rare_words=None):
     assert token_list == list(token_list2), \
             '%r %r' % (token_list, token_list2) # If not, the training data may be faulty
 
-    time_steps = get_timesteps(token_list, rare_words=rare_words)
+    time_steps = get_timesteps(token_list, word_freq=word_freq)
     for (label, features) in zip(label_list, time_steps):
         print >> f, '%s ---- %s' % (label, ' '.join(features))
+    
+    if hint_file:
+        for token in token_list:
+            print >> hint_file, token.encode('utf8')
 
-
-def create_input(li, f):
-    rare_words = set([])
-    if 'Rare' in features_on:
-        rare_words=find_rare_words(li)
+def create_input(li, f, h, word_freq=None):
     for aff in li:
-        create_instance(aff, f, rare_words=rare_words)
+        create_instance(aff, f, word_freq=word_freq, hint_file=h)
         print >> f
+        if h:
+            print >> h
 
 
-def export_to_crf_input(root, num, file1, file2):
+def export_to_crf_input(root, num1, num2, file1, file2, hint_file):
     affs = list(root)
-    aff_list = [(affs[0:num], file1), (affs[num:2*num], file2)]
+    aff_list = [(affs[0:num1], file1, None), (affs[num1:num1 + num2], file2, hint_file)]
+    
+    word_freq = set([])
+    if any(x in features_on for x in ['Rare', 'Freq']):
+        word_freq=find_word_freq(affs[0:num1])
 
-    for (li, f) in aff_list:
-        create_input(li, f)
+    for (li, f, h) in aff_list:
+        create_input(li, f, h, word_freq)
 
 
 def get_args():
     parser = argparse.ArgumentParser(description="Export tokens to crf format")
     
     parser.add_argument('features', default='[]')
-    parser.add_argument('--number', type=int, dest='number', default=100)
+    parser.add_argument('--train_number', type=int, default=100)
+    parser.add_argument('--test_number', type=int, default=1000)
     parser.add_argument('--train', dest='training_file', default='crf/data/fancy_train.txt')
     parser.add_argument('--test', dest='test_file', default='crf/data/fancy_test.txt')
+    parser.add_argument('--hint', dest='hint_file', default='crf/data/fancy_hint.txt')
     parser.add_argument('--input', dest='input_file', default='resources/final.xml')
-    parser.add_argument('--rare', type=int, dest='rare', default=3)
-    parser.add_argument('--neighbor', type=int, dest='neighbor', default=0)
+    parser.add_argument('--rare', type=int, default=3)
+    parser.add_argument('--neighbor', type=int, default=0)
     
     return parser.parse_args()
 
@@ -253,10 +270,11 @@ if __name__ == '__main__':
     nei_thr = args.neighbor
 
     print features_on
-    file1 = open(args.training_file, 'wb')
-    file2 = open(args.test_file, 'wb')
+    training_file = open(args.training_file, 'wb')
+    test_file = open(args.test_file, 'wb')
+    hint_file = open(args.hint_file, 'wb')
 
     load_dicts(dicts)
     tree = ET.parse(args.input_file)
     root = tree.getroot()
-    export_to_crf_input(root, args.number, file1, file2)
+    export_to_crf_input(root, args.train_number, args.test_number, training_file, test_file, hint_file)

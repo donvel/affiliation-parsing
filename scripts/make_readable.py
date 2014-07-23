@@ -1,4 +1,4 @@
-import sys
+import argparse
 import re
 
 head_template = \
@@ -29,14 +29,17 @@ def process_files(input_file, output_file):
 
             print >> out, "</html>"
 
+
+def get_args():
+    parser = argparse.ArgumentParser(description="Export xml to human-readable html")
+    
+    parser.add_argument('--xml', dest='xml', default='resources/affiliations_stripped.xml')
+    parser.add_argument('--html', dest='html', default='resources/affiliations_stripped.html')
+    
+    return parser.parse_args()
+
 if __name__ == '__main__':
-    input_file = 'resources/affiliations_stripped.xml'
-    output_file = 'resources/affiliations_stripped.html'
 
-    args = sys.argv[1:]
-    print str(args)
-    if len(args) >= 2:
-        input_file = args[0]
-        output_file = args[1]
+    args = get_args()
 
-    process_files(input_file, output_file)
+    process_files(args.xml, args.html)

@@ -2,3 +2,6 @@
 *.swp
 *.swo
 crf
+grmm-0.1.3
+logs
+acrf.ser.gz
