@@ -33,8 +33,8 @@ def process_files(input_file, output_file):
 def get_args():
     parser = argparse.ArgumentParser(description="Export xml to human-readable html")
     
-    parser.add_argument('--xml', dest='xml', default='resources/affiliations_stripped.xml')
-    parser.add_argument('--html', dest='html', default='resources/affiliations_stripped.html')
+    parser.add_argument('--xml', default='resources/affiliations_stripped.xml')
+    parser.add_argument('--html', default='resources/affiliations_stripped.html')
     
     return parser.parse_args()
 

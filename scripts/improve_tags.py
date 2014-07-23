@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-import sys
+import argparse
 
 
 keep_tags = ['addr-line', 'institution', 'country']
@@ -55,18 +55,20 @@ def process(root):
         if rep == 'IAC':
             aff.text = None
 
+
+def get_args():
+    parser = argparse.ArgumentParser(description="Rule-based training data enhancment")
+    
+    parser.add_argument('--input', default='resources/affiliations_stripped.xml')
+    parser.add_argument('--output', default='resources/improved.xml')
+    
+    return parser.parse_args()
+
 if __name__ == '__main__':
 
-    input_file = 'resources/affiliations_stripped.xml'
-    output_file = 'resources/final.xml'
-    
-    args = sys.argv[1:]
-    print str(args)
-    if len(args) >= 2:
-        input_file = args[0]
-        output_file = args[1]
+    args = get_args()
 
-    tree = ET.parse(input_file)
+    tree = ET.parse(args.input)
     root = tree.getroot()
     process(root)
-    tree.write(output_file)
+    tree.write(args.output)
